@@ -8,6 +8,7 @@ FROM dependencies AS build
 COPY . ./
 RUN CGO_ENABLED=0 go build -o /main -ldflags="-s -w" .
 
-FROM golang:1.20-alpine
+# FROM golang:1.20-alpine
+FROM scratch
 COPY --from=build /main /main
 CMD ["/main"]
