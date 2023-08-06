@@ -8,6 +8,7 @@ import (
 	"github.com/cwrenhold/linkedin-learning-build-a-microservice-with-go/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (c Client) GetAllProducts(ctx context.Context, vendorID string) ([]models.Product, error) {
@@ -52,4 +53,32 @@ func (c Client) AddProduct(ctx context.Context, product *models.Product) (*model
 	}
 
 	return product, nil
+}
+
+func (c Client) UpdateProduct(ctx context.Context, product *models.Product) (*models.Product, error) {
+	var products []models.Product
+
+	result := c.DB.WithContext(ctx).
+		Model(&products).
+		Clauses(clause.Returning{}).
+		Where(models.Product{ProductID: product.ProductID}).
+		Updates(models.Product{
+			Name:     product.Name,
+			Price:    product.Price,
+			VendorID: product.VendorID,
+		})
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+			return nil, &dberrors.ConflictError{}
+		}
+
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, &dberrors.NotFoundError{Entity: "product", ID: product.ProductID}
+	}
+
+	return &products[0], nil
 }
