@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/cwrenhold/linkedin-learning-build-a-microservice-with-go/internal/models"
@@ -44,14 +45,21 @@ type Client struct {
 }
 
 func NewDatabaseClient() (DatabaseClient, error) {
+	host := os.Getenv("POSTGRES_HOSTNAME")
+	port := os.Getenv("POSTGRES_PORT")
+	user := os.Getenv("POSTGRES_USER")
+	password := os.Getenv("POSTGRES_PASSWORD")
+	dbname := os.Getenv("POSTGRES_DB")
+	sslmode := os.Getenv("POSTGRES_SSLMODE")
+
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
-		"db",
-		"postgres",
-		"postgres",
-		"postgres",
-		5432,
-		"disable")
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		host,
+		user,
+		password,
+		dbname,
+		port,
+		sslmode)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
